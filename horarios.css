@@ -1,0 +1,44 @@
+#horarios-container {
+    max-width: 600px;
+    margin: auto;
+    background-color: var(--branco);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.turno-card {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--borda-suave);
+    padding-bottom: 1.5rem;
+}
+
+.turno-card:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.turno-card h3 {
+    color: var(--azul-santailha);
+    margin-top: 0;
+}
+
+.horario-display, .horario-edit {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 1.2rem;
+}
+
+.horario-edit input[type="time"] {
+    font-size: 1.1rem;
+    padding: 8px;
+    border: 1px solid var(--borda-suave);
+    border-radius: 6px;
+}
+
+#admin-actions {
+    max-width: 600px;
+    margin: 1.5rem auto 0 auto;
+    padding: 0 2rem;
+}
