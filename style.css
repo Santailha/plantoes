@@ -1063,3 +1063,41 @@ body.role-corretor .calendar-day[data-day]:hover {
         font-weight: bold;
     }
 }
+/* ... (todo o código CSS anterior) ... */
+
+/* --- ESTILOS PARA ÍCONES E BOTÕES NO HEADER --- */
+
+.header-actions {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-actions #logout-btn {
+    position: static;
+}
+
+#dashboard-icon, #logs-icon { /* Adicionado #logs-icon */
+    font-size: 2rem;
+    text-decoration: none;
+    transition: transform 0.2s;
+    color: var(--branco); /* Garante a cor branca */
+}
+
+#dashboard-icon:hover, #logs-icon:hover { /* Adicionado #logs-icon */
+    transform: scale(1.2);
+}
+
+/* ... (resto do código CSS) ... */
+
+/* Adicione no final da seção @media (max-width: 800px) */
+@media (max-width: 800px) {
+    /* ... (outras regras @media) ... */
+    #dashboard-icon, #logs-icon { /* Adicionado #logs-icon */
+        display: none;
+    }
+    /* ... (resto das regras @media) ... */
+}
