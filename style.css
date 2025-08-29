@@ -137,7 +137,6 @@ main {
     border: 1px solid var(--borda-suave);
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    /* overflow: hidden; FOI REMOVIDO DAQUI */
 }
 
 .calendar-header,
@@ -907,9 +906,16 @@ body.role-corretor .calendar-day[data-day]:hover {
     border-left: 5px solid var(--amarelo-santailha);
 }
 
+/* ALTERAÇÃO ADICIONADA AQUI */
 .calendar-day.plantao-outra {
-    background-color: #f5f5f5; /* Cinza claro */
-    opacity: 0.7;
+    background-color: #8a8a8a; /* Cinza chumbo */
+    color: var(--branco);
+}
+
+/* Adicionado para que o texto dentro também mude de cor */
+.calendar-day.plantao-outra .shift-title,
+.calendar-day.plantao-outra .agent-list-day li {
+    color: var(--branco);
 }
 
 /* --- ESTILOS PARA O SELETOR NO MODAL --- */
