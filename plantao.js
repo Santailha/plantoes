@@ -58,7 +58,6 @@ function initializeApp(user, userRole) {
     const closeModalBtn = modal.querySelector('.close-btn');
     const editScaleForm = document.getElementById('edit-scale-form');
 
-    // **LÓGICA PARA OTIMIZAÇÃO MÓVEL**
     const isMobile = window.innerWidth <= 768;
 
     if (userRole !== 'admin') {
@@ -80,7 +79,6 @@ function initializeApp(user, userRole) {
     }
 
     if (isMobile) {
-        // Força a visualização diária e esconde controlos desnecessários
         activeView = 'daily';
         document.querySelector('.view-switcher').style.display = 'none';
         document.querySelector('.plantao-selector').style.display = 'none';
@@ -97,7 +95,6 @@ function initializeApp(user, userRole) {
     async function addLog(action, details) {
         const currentUser = auth.currentUser;
         if (!currentUser) return;
-
         try {
             await db.collection('logs').add({
                 action,
@@ -137,7 +134,7 @@ function initializeApp(user, userRole) {
     }
 
     async function loadPlantoes() {
-        return new Promise((resolve) => { // Retorna uma promessa para garantir a ordem
+        return new Promise((resolve) => {
             db.collection('plantoes').orderBy('nome').onSnapshot(snapshot => {
                 plantoesCache = [];
                 plantaoSelect.innerHTML = '';
@@ -439,10 +436,41 @@ function initializeApp(user, userRole) {
         const tipoPlantaoSelecionado = modal.querySelector('input[name="tipoPlantao"]:checked').value;
         if (tipoPlantaoSelecionado !== 'nenhum') {
             proposedScale.tipoPlantao = tipoPlantaoSelecionado;
-        } else {
-            delete proposedScale.tipoPlantao;
         }
 
+        const escalaAntigaDoc = await getEscalaDoMes(activePlantaoId, year, month);
+        const escalaAntigaDoDia = escalaAntigaDoc.dias?.[day] || {};
+        
+        let logDetails = '';
+        const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+        
+        turnos.forEach(turno => {
+            const antigos = escalaAntigaDoDia[turno] || [];
+            const novos = proposedScale[turno] || [];
+            const adicionados = novos.filter(id => !antigos.includes(id));
+            const removidos = antigos.filter(id => !novos.includes(id));
+            
+            if (adicionados.length > 0 || removidos.length > 0) {
+                logDetails += `Turno ${capitalize(turno)}: `;
+                if (adicionados.length > 0) {
+                    logDetails += `Adicionado(s): ${adicionados.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
+                }
+                if (removidos.length > 0) {
+                    logDetails += `Removido(s): ${removidos.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
+                }
+            }
+        });
+
+        const tipoAntigo = escalaAntigaDoDia.tipoPlantao || 'nenhum';
+        const tipoNovo = proposedScale.tipoPlantao || 'nenhum';
+        if (tipoAntigo !== tipoNovo) {
+            logDetails += `Tipo de plantão alterado de "${tipoAntigo}" para "${tipoNovo}".`;
+        }
+
+        if (logDetails === '') {
+            modal.style.display = 'none';
+            return; // Nenhuma alteração feita
+        }
 
         const docId = `${activePlantaoId}_${year}-${String(month + 1).padStart(2, '0')}`;
         try {
@@ -452,7 +480,7 @@ function initializeApp(user, userRole) {
             }, { merge: true });
 
             const plantaoNome = plantoesCache.find(p => p.id === activePlantaoId)?.nome || `ID ${activePlantaoId}`;
-            addLog('Alteração de Escala de Plantão', `Escala do dia ${day}/${month + 1}/${year} para o plantão "${plantaoNome}" foi alterada.`);
+            addLog(`Alteração - ${plantaoNome} - Dia ${day}/${month + 1}`, logDetails);
 
             modal.style.display = 'none';
             delete escalaCache[docId];
@@ -470,9 +498,9 @@ function initializeApp(user, userRole) {
             currentMonthYearEl.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${year}`;
         }
         if(datePicker) {
-            const day = String(currentDate.getDate()).padStart(2, '0');
-            const monthInput = String(currentDate.getMonth() + 1).padStart(2, '0');
-            datePicker.value = `${year}-${monthInput}-${day}`;
+            const dayStr = String(currentDate.getDate()).padStart(2, '0');
+            const monthStr = String(currentDate.getMonth() + 1).padStart(2, '0');
+            datePicker.value = `${year}-${monthStr}-${dayStr}`;
         }
     }
 
