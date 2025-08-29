@@ -94,6 +94,22 @@ function initializeApp(user, userRole) {
         viewWeeklyBtn.classList.remove('active');
     }
 
+    async function addLog(action, details) {
+        const currentUser = auth.currentUser;
+        if (!currentUser) return;
+
+        try {
+            await db.collection('logs').add({
+                action,
+                details,
+                userId: currentUser.uid,
+                userEmail: currentUser.email,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Erro ao registrar log:", error);
+        }
+    }
 
     async function loadCorretores() {
         return new Promise((resolve) => {
@@ -435,6 +451,9 @@ function initializeApp(user, userRole) {
                 dias: { [day]: proposedScale }
             }, { merge: true });
 
+            const plantaoNome = plantoesCache.find(p => p.id === activePlantaoId)?.nome || `ID ${activePlantaoId}`;
+            addLog('Alteração de Escala de Plantão', `Escala do dia ${day}/${month + 1}/${year} para o plantão "${plantaoNome}" foi alterada.`);
+
             modal.style.display = 'none';
             delete escalaCache[docId];
             render();
@@ -469,6 +488,9 @@ function initializeApp(user, userRole) {
                         integraComDistribuicao: integraCheckbox.checked,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
+                    
+                    addLog('Criação de Plantão', `Novo plantão "${nome}" criado.`);
+
                     document.getElementById('new-plantao-name').value = '';
                     integraCheckbox.checked = false;
                 } catch (error) {
