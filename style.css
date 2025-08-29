@@ -146,6 +146,14 @@ main {
     grid-template-columns: repeat(7, 1fr);
 }
 
+/* ALTERAÇÃO ADICIONADA AQUI */
+.calendar-header {
+    position: sticky;
+    top: 0;
+    background-color: var(--branco);
+    z-index: 10;
+}
+
 .calendar-header div {
     font-weight: 600;
     color: var(--azul-santailha);
@@ -815,7 +823,7 @@ body.role-corretor .calendar-day[data-day]:hover {
 .form-group-checkbox input[type="checkbox"]:checked + label::before {
     background-color: var(--azul-santailha);
     border-color: var(--azul-santailha);
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%E%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
     background-size: 14px;
     background-position: center;
     background-repeat: no-repeat;
@@ -836,13 +844,14 @@ body.role-corretor .calendar-day[data-day]:hover {
     position: static;
 }
 
-#dashboard-icon {
+#dashboard-icon, #logs-icon {
     font-size: 2rem;
     text-decoration: none;
     transition: transform 0.2s;
+    color: var(--branco);
 }
 
-#dashboard-icon:hover {
+#dashboard-icon:hover, #logs-icon:hover {
     transform: scale(1.2);
 }
 
@@ -997,7 +1006,7 @@ body.role-corretor .calendar-day[data-day]:hover {
         font-size: 0.8rem;
     }
     
-    #dashboard-icon {
+    #dashboard-icon, #logs-icon {
         display: none;
     }
     
@@ -1062,42 +1071,4 @@ body.role-corretor .calendar-day[data-day]:hover {
         content: attr(data-weekday) " - ";
         font-weight: bold;
     }
-}
-/* ... (todo o código CSS anterior) ... */
-
-/* --- ESTILOS PARA ÍCONES E BOTÕES NO HEADER --- */
-
-.header-actions {
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.header-actions #logout-btn {
-    position: static;
-}
-
-#dashboard-icon, #logs-icon { /* Adicionado #logs-icon */
-    font-size: 2rem;
-    text-decoration: none;
-    transition: transform 0.2s;
-    color: var(--branco); /* Garante a cor branca */
-}
-
-#dashboard-icon:hover, #logs-icon:hover { /* Adicionado #logs-icon */
-    transform: scale(1.2);
-}
-
-/* ... (resto do código CSS) ... */
-
-/* Adicione no final da seção @media (max-width: 800px) */
-@media (max-width: 800px) {
-    /* ... (outras regras @media) ... */
-    #dashboard-icon, #logs-icon { /* Adicionado #logs-icon */
-        display: none;
-    }
-    /* ... (resto das regras @media) ... */
 }
