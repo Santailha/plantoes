@@ -278,17 +278,46 @@ function initializeApp() {
         const docId = `${year}-${String(month + 1).padStart(2, '0')}`;
 
         const escalaDoDia = {};
-        ['manha', 'tarde', 'noite'].forEach(turno => {
+        const turnos = ['manha', 'tarde', 'noite'];
+        turnos.forEach(turno => {
             const listaEscaladosEl = document.getElementById(`escalados-${turno}`);
             escalaDoDia[turno] = [...listaEscaladosEl.children].map(li => li.dataset.id);
         });
+
+        const escalaAntigaDoc = await getEscalaDoMes(year, month);
+        const escalaAntigaDoDia = escalaAntigaDoc[unidadeAtiva]?.dias?.[day] || {};
+        
+        let logDetails = '';
+        const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+
+        turnos.forEach(turno => {
+            const antigos = escalaAntigaDoDia[turno] || [];
+            const novos = escalaDoDia[turno] || [];
+            const adicionados = novos.filter(id => !antigos.includes(id));
+            const removidos = antigos.filter(id => !novos.includes(id));
+            
+            if (adicionados.length > 0 || removidos.length > 0) {
+                logDetails += `Turno ${capitalize(turno)}: `;
+                if (adicionados.length > 0) {
+                    logDetails += `Adicionado(s): ${adicionados.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
+                }
+                if (removidos.length > 0) {
+                    logDetails += `Removido(s): ${removidos.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
+                }
+            }
+        });
+
+        if (logDetails === '') {
+            modal.style.display = 'none';
+            return; // Nenhuma alteração
+        }
 
         try {
             await db.collection('escala').doc(docId).set({
                 [unidadeAtiva]: { dias: { [day]: escalaDoDia } }
             }, { merge: true });
 
-            addLog('Alteração de Distribuição de Leads', `Distribuição do dia ${day}/${month + 1}/${year} para a unidade ${unidadeAtiva} foi alterada.`);
+            addLog(`Alteração - Distribuição ${capitalize(unidadeAtiva)} - Dia ${day}/${month + 1}`, logDetails);
 
             modal.style.display = 'none';
             delete escalaCache[docId];
