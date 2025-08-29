@@ -46,6 +46,22 @@ function initializeApp() {
     let unidadeAtiva = 'centro';
     let corretorFiltradoId = 'todos';
 
+    async function addLog(action, details) {
+        const user = auth.currentUser;
+        if (!user) return;
+
+        try {
+            await db.collection('logs').add({
+                action,
+                details,
+                userId: user.uid,
+                userEmail: user.email,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Erro ao registrar log:", error);
+        }
+    }
     
     async function handleAddAgent(e) {
         e.preventDefault();
@@ -64,6 +80,9 @@ function initializeApp() {
                 idBitrix: parseInt(idBitrix),
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             });
+            
+            addLog('Adição de Corretor', `Corretor "${nome}" adicionado à unidade ${unidade}.`);
+            
             addAgentForm.reset();
             alert("Corretor adicionado com sucesso!");
         } catch (error) {
@@ -107,8 +126,10 @@ function initializeApp() {
     async function handleDeleteAgent(e) {
         if (!e.target.classList.contains('delete-agent-btn')) return;
         const id = e.target.dataset.id;
-        if (confirm(`Tem certeza que deseja excluir o corretor?`)) {
+        const corretorNome = corretoresCache[id]?.nome || `ID desconhecido (${id})`;
+        if (confirm(`Tem certeza que deseja excluir o corretor "${corretorNome}"?`)) {
             await db.collection('corretores').doc(id).delete().catch(err => console.error("Erro ao excluir corretor:", err));
+            addLog('Exclusão de Corretor', `Corretor "${corretorNome}" foi excluído.`);
         }
     }
 
@@ -266,6 +287,8 @@ function initializeApp() {
             await db.collection('escala').doc(docId).set({
                 [unidadeAtiva]: { dias: { [day]: escalaDoDia } }
             }, { merge: true });
+
+            addLog('Alteração de Distribuição de Leads', `Distribuição do dia ${day}/${month + 1}/${year} para a unidade ${unidadeAtiva} foi alterada.`);
 
             modal.style.display = 'none';
             delete escalaCache[docId];
