@@ -137,7 +137,7 @@ main {
     border: 1px solid var(--borda-suave);
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    overflow: hidden;
+    /* overflow: hidden; FOI REMOVIDO DAQUI */
 }
 
 .calendar-header,
@@ -146,7 +146,6 @@ main {
     grid-template-columns: repeat(7, 1fr);
 }
 
-/* ALTERAÇÃO ADICIONADA AQUI */
 .calendar-header {
     position: sticky;
     top: 0;
