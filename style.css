@@ -1089,4 +1089,8 @@ body.role-recepcao #page-navigation {
         padding: 0;
         line-height: 1; /* Alinhamento da seta */
     }
+
+    .plantao-selector {
+        display: none;
+    }
 }
