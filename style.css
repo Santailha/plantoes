@@ -1081,4 +1081,12 @@ body.role-recepcao #page-navigation {
         content: attr(data-weekday) " - ";
         font-weight: bold;
     }
+    
+    .date-navigator-daily button {
+        width: 40px;
+        height: 40px;
+        min-width: 40px; /* Garante que o botão não seja espremido */
+        padding: 0;
+        line-height: 1; /* Alinhamento da seta */
+    }
 }
