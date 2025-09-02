@@ -87,17 +87,23 @@ function initializeApp(user, userRole) {
     }
 
     if (isMobile) {
+        // Define a visualização diária como padrão no celular
         activeView = 'daily';
-        document.querySelector('.view-switcher').style.display = 'none';
-        document.querySelector('.plantao-selector').style.display = 'none';
         monthlyView.style.display = 'none';
         dailyView.style.display = 'block';
         weeklyView.style.display = 'none';
         monthlyNav.style.display = 'none';
         dailyNav.style.display = 'flex';
+
+        // Garante que o botão 'Diário' esteja ativo
         viewDailyBtn.classList.add('active');
         viewMonthlyBtn.classList.remove('active');
         viewWeeklyBtn.classList.remove('active');
+        
+        // Oculta apenas a visualização mensal no celular, mantendo as outras
+        if(viewMonthlyBtn) {
+            viewMonthlyBtn.style.display = 'none';
+        }
     }
 
     async function addLog(action, details) {
