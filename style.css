@@ -963,6 +963,15 @@ body.role-recepcao #page-navigation {
     display: none;
 }
 
+/* --- DESTAQUE DO CORRETOR FILTRADO --- */
+.highlight-agent {
+    background-color: var(--amarelo-santailha);
+    color: var(--azul-santailha);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
 
 /* --- 🌟 --- ESTILOS PARA UMA SUPER RESPONSIVIDADE --- 🌟 --- */
 @media (max-width: 800px) {
