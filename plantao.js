@@ -199,11 +199,21 @@ function initializeApp(user, userRole) {
         let daysHtml = '';
         for (let i = 0; i < firstDayIndex; i++) { daysHtml += `<div class="calendar-day not-current-month"></div>`; }
         
+        const mapNomesComDestaque = (ids) => {
+            return (ids || []).map(id => {
+                const nome = corretoresCache[id]?.primeiroNome || '?';
+                if (corretorFiltradoId !== 'todos' && corretorFiltradoId === id) {
+                    return `<span class="highlight-agent">${nome}</span>`;
+                }
+                return nome;
+            }).join(' > ');
+        };
+
         for (let i = 1; i <= lastDay; i++) {
             const diaData = diasEscalados[i] || {};
-            const manhaNomes = (diaData.manha || []).map(id => corretoresCache[id]?.primeiroNome || '?').join(' > ');
-            const tardeNomes = (diaData.tarde || []).map(id => corretoresCache[id]?.primeiroNome || '?').join(' > ');
-            const noiteNomes = (diaData.noite || []).map(id => corretoresCache[id]?.primeiroNome || '?').join(' > ');
+            const manhaNomes = mapNomesComDestaque(diaData.manha);
+            const tardeNomes = mapNomesComDestaque(diaData.tarde);
+            const noiteNomes = mapNomesComDestaque(diaData.noite);
             
             let classesDoDia = 'calendar-day';
             if (corretorFiltradoId !== 'todos') {
@@ -243,6 +253,16 @@ function initializeApp(user, userRole) {
         weeklyDateRangeEl.textContent = `Semana de ${firstDay.toLocaleDateString()} a ${lastDay.toLocaleDateString()}`;
 
         let weeklyHtml = '';
+        
+        const mapNomesComDestaque = (ids) => {
+            return (ids || []).map(id => {
+                const nome = corretoresCache[id]?.nome || '?';
+                if (corretorFiltradoId !== 'todos' && corretorFiltradoId === id) {
+                    return `<span class="highlight-agent">${nome}</span>`;
+                }
+                return nome;
+            }).join(', ');
+        };
 
         for (const date of weekDates) {
             const year = date.getFullYear();
@@ -265,9 +285,9 @@ function initializeApp(user, userRole) {
 
                 allPlantonistasDoDia.push(...manhaIds, ...tardeIds, ...noiteIds);
 
-                const manhaNomes = manhaIds.map(id => corretoresCache[id]?.nome || '?').join(', ');
-                const tardeNomes = tardeIds.map(id => corretoresCache[id]?.nome || '?').join(', ');
-                const noiteNomes = noiteIds.map(id => corretoresCache[id]?.nome || '?').join(', ');
+                const manhaNomes = mapNomesComDestaque(manhaIds);
+                const tardeNomes = mapNomesComDestaque(tardeIds);
+                const noiteNomes = mapNomesComDestaque(noiteIds);
 
                 if (manhaNomes || tardeNomes || noiteNomes) {
                     plantoesHtml += `
@@ -323,12 +343,25 @@ function initializeApp(user, userRole) {
             dailyView.innerHTML = '<div style="text-align: center; padding: 2rem;">Nenhum plantão criado.</div>';
             return;
         }
+
+        const mapNomesComDestaque = (ids) => {
+            const nomes = (ids || []).map(id => {
+                const nome = corretoresCache[id]?.nome || '?';
+                if (corretorFiltradoId !== 'todos' && corretorFiltradoId === id) {
+                    return `<span class="highlight-agent">${nome}</span>`;
+                }
+                return nome;
+            }).join(', ');
+            return nomes || 'Ninguém';
+        };
+
         plantoesCache.forEach((plantao, index) => {
             const escalaPlantao = escalas[index];
             const diaData = escalaPlantao.dias?.[day] || {};
-            const manhaNomes = (diaData.manha || []).map(id => corretoresCache[id]?.nome || '?').join(', ');
-            const tardeNomes = (diaData.tarde || []).map(id => corretoresCache[id]?.nome || '?').join(', ');
-            const noiteNomes = (diaData.noite || []).map(id => corretoresCache[id]?.nome || '?').join(', ');
+            const manhaNomes = mapNomesComDestaque(diaData.manha);
+            const tardeNomes = mapNomesComDestaque(diaData.tarde);
+            const noiteNomes = mapNomesComDestaque(diaData.noite);
+
             let classesPlantao = 'daily-plantao-card';
             if (corretorFiltradoId !== 'todos') {
                 const plantonistas = [...(diaData.manha || []), ...(diaData.tarde || []), ...(diaData.noite || [])];
@@ -339,9 +372,9 @@ function initializeApp(user, userRole) {
             dailyHtml += `
                 <div class="${classesPlantao}">
                     <h3>${plantao.nome}</h3>
-                    <div class="daily-shift"><strong>Manhã:</strong> ${manhaNomes || 'Ninguém'}</div>
-                    <div class="daily-shift"><strong>Tarde:</strong> ${tardeNomes || 'Ninguém'}</div>
-                    <div class="daily-shift"><strong>Noite:</strong> ${noiteNomes || 'Ninguém'}</div>
+                    <div class="daily-shift"><strong>Manhã:</strong> ${manhaNomes}</div>
+                    <div class="daily-shift"><strong>Tarde:</strong> ${tardeNomes}</div>
+                    <div class="daily-shift"><strong>Noite:</strong> ${noiteNomes}</div>
                 </div>
             `;
         });
