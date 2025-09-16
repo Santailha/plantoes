@@ -1,0 +1,76 @@
+#filter-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+#month-filter {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--borda-suave);
+    font-size: 1em;
+}
+
+#dashboard-container table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--branco);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+#dashboard-container th,
+#dashboard-container td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--borda-suave);
+}
+
+#dashboard-container th {
+    background-color: var(--azul-santailha);
+    color: var(--branco);
+}
+
+#dashboard-container tbody tr:hover {
+    background-color: #f5f8ff;
+}
+
+/* --- NOVOS ESTILOS PARA O DRILL-THROUGH --- */
+
+/* Torna a célula de leads clicável */
+.leads-cell {
+    font-weight: bold;
+    color: var(--azul-santailha);
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.leads-cell:hover {
+    color: var(--amarelo-santailha);
+}
+
+/* Estilo para a lista de leads no modal */
+#lead-list-container ul {
+    list-style: none;
+    padding: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#lead-list-container li {
+    background-color: #f7f8fc;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--amarelo-santailha);
+}
+#corretor-filter {
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid var(--borda-suave);
+    font-size: 1em;
+    min-width: 250px;
+}

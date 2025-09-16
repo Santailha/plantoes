@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciador de Plantões - Santa Ilha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="faviconS.png" type="image/x-icon">
+
+    <link rel="apple-touch-icon" href="faviconS.png">
+
+    <link rel="icon" sizes="192x192" href="faviconS.png">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="img/Logo_S_Amarelo_EscritaBranca (2).png" alt="logo-santa-ilha" class="logo">
+            
+            <div class="title-container">
+                <h1>Gerenciador de Plantões</h1>
+                <a href="horarios.html" id="horarios-icon" title="Ver Horários">🕒</a>
+            </div>
+
+            <div id="month-navigation">
+                 <a href="distribuicao.html" class="header-nav-link">Distribuição de Leads</a>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a href="dashboard.html" id="dashboard-icon" title="Ver Dashboard de Leads">📊</a>
+            <a href="logs.html" id="logs-icon" title="Histórico de Alterações">📜</a>
+            <button id="logout-btn">Sair</button>
+        </div>
+    </header>
+
+    <main>
+        <section class="controls-bar">
+            <div class="plantao-selector">
+                <label for="plantao-select">Selecione o Plantão:</label>
+                <select id="plantao-select">
+                    <option>Carregando...</option>
+                </select>
+            </div>
+            <div class="plantao-creator">
+                <form id="create-plantao-form">
+                    <input type="text" id="new-plantao-name" placeholder="Nome do novo plantão" required>
+                    <button type="submit">Criar Plantão</button>
+                    <div class="form-group-checkbox">
+                        <input type="checkbox" id="integra-plantao-checkbox">
+                        <label for="integra-plantao-checkbox">Integrar com Distribuição de Leads</label>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <section class="controls-bar view-controls">
+             <div class="view-switcher">
+                <button id="view-monthly-btn" class="view-btn active">📅 Mensal</button>
+                <button id="view-daily-btn" class="view-btn">🗓️ Diário</button>
+                <button id="view-weekly-btn" class="view-btn">📅 Semanal</button>
+            </div>
+            <div class="date-navigator-daily" style="display: none;">
+                <button id="prev-day-btn">&lt;</button>
+                <input type="date" id="date-picker">
+                <button id="next-day-btn">&gt;</button>
+            </div>
+             <div id="filter-container">
+                <label for="agent-filter">Filtrar por Corretor:</label>
+                <select id="agent-filter">
+                    <option value="todos">Ver todos os corretores</option>
+                </select>
+            </div>
+        </section>
+
+        <div id="view-container">
+            <div id="monthly-view">
+                <div id="month-navigation-calendar">
+                    <button id="prev-month-btn">&lt;</button>
+                    <h2 id="current-month-year"></h2>
+                    <button id="next-month-btn">&gt;</button>
+                </div>
+                <div id="calendar-container">
+                    <div class="calendar-header">
+                        <div>Domingo</div> <div>Segunda</div> <div>Terça</div> <div>Quarta</div> <div>Quinta</div> <div>Sexta</div> <div>Sábado</div>
+                    </div>
+                    <div id="calendar-grid" class="calendar-grid"></div>
+                </div>
+            </div>
+
+            <div id="daily-view" style="display: none;">
+            </div>
+            
+            <div id="weekly-view" style="display: none;">
+                <div class="weekly-header">
+                    <h2 id="weekly-date-range"></h2>
+                </div>
+                <div id="weekly-grid">
+                    </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" title="Fechar">&times;</span>
+            <h3 id="modal-title">Editar Plantão</h3>
+            <form id="edit-scale-form">
+                <input type="hidden" id="selected-day">
+
+                <div class="day-type-selector">
+                    <h4>Tipo de Plantão</h4>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="tipoPlantao" value="nosso">
+                            <span>Nosso Plantão</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="tipoPlantao" value="outra">
+                            <span>Outra Imobiliária</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="tipoPlantao" value="nenhum" checked>
+                            <span>Nenhum (Dia Normal)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="shift-editor">
+                    <h4>☀️ Turno da Manhã</h4>
+                    <div class="scale-editor-grid">
+                        <div class="editor-column">
+                            <h5>Disponíveis</h5>
+                            <div class="filter-wrapper">
+                                <input type="text" class="agent-list-filter" placeholder="Buscar corretor...">
+                            </div>
+                            <ul id="disponiveis-manha" class="sortable-list"></ul>
+                        </div>
+                        <div class="editor-column">
+                            <h5>Escalados (Arraste para ordenar)</h5>
+                            <ul id="escalados-manha" class="sortable-list"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="shift-editor">
+                    <h4>☀️ Turno da Tarde</h4>
+                    <div class="scale-editor-grid">
+                        <div class="editor-column">
+                            <h5>Disponíveis</h5>
+                            <div class="filter-wrapper">
+                                <input type="text" class="agent-list-filter" placeholder="Buscar corretor...">
+                            </div>
+                            <ul id="disponiveis-tarde" class="sortable-list"></ul>
+                        </div>
+                        <div class="editor-column">
+                            <h5>Escalados (Arraste para ordenar)</h5>
+                            <ul id="escalados-tarde" class="sortable-list"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="shift-editor">
+                    <h4>🌙 Turno da Noite</h4>
+                    <div class="scale-editor-grid">
+                        <div class="editor-column">
+                            <h5>Disponíveis</h5>
+                            <div class="filter-wrapper">
+                                <input type="text" class="agent-list-filter" placeholder="Buscar corretor...">
+                            </div>
+                            <ul id="disponiveis-noite" class="sortable-list"></ul>
+                        </div>
+                        <div class="editor-column">
+                            <h5>Escalados (Arraste para ordenar)</h5>
+                            <ul id="escalados-noite" class="sortable-list"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit">Salvar Plantão</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="plantao.js"></script>
+</body>
+</html>

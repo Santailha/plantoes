@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Plantão - Santa Ilha Imóveis</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="faviconS.png" type="image/x-icon">
+</head>
+<body>
+<header>
+    <div class="header-content">
+        <img src="img/Logo_S_Amarelo_EscritaBranca (2).png" alt="logo-santa-ilha" class="logo">
+        
+        <h1>Distribuição de Leads</h1>
+        <div id="month-navigation">
+            <button id="prev-month-btn" title="Mês Anterior">&lt;</button>
+            <h2 id="current-month-year">Carregando...</h2>
+            <button id="next-month-btn" title="Próximo Mês">&gt;</button>
+        </div>
+    </div>
+    <button id="logout-btn">Sair</button>
+</header>
+
+    <main>
+        
+        <div id="page-navigation">
+            <a href="plantao.html" class="nav-button-outline">Plantão</a>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" data-unidade="centro">Centro</button>
+            <button class="tab-button" data-unidade="campeche">Campeche</button>
+        </div>
+
+        <div id="filter-container">
+            <label for="agent-filter">Filtrar por Corretor:</label>
+            <select id="agent-filter">
+                <option value="todos">Ver todos os corretores</option>
+            </select>
+        </div>
+
+        <div id="calendar-container">
+            <div class="calendar-header">
+                <div>Domingo</div> <div>Segunda</div> <div>Terça</div> <div>Quarta</div> <div>Quinta</div> <div>Sexta</div> <div>Sábado</div>
+            </div>
+            <div id="calendar-grid" class="calendar-grid"></div>
+        </div>
+
+        <section id="management-section">
+            <h2>Administração de Corretores</h2>
+            <div class="management-content">
+                <div class="form-container">
+                    <h3>Adicionar Novo Corretor</h3>
+                    <form id="add-agent-form">
+                        <div class="form-group">
+                            <label for="agent-name">Nome Completo</label>
+                            <input type="text" id="agent-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="agent-email">Email (do Bitrix)</label>
+                            <input type="email" id="agent-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="agent-bitrix-id">ID (do Bitrix)</label>
+                            <input type="number" id="agent-bitrix-id" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="agent-unidade">Unidade</label>
+                            <select id="agent-unidade" required>
+                                <option value="Centro">Centro</option>
+                                <option value="Campeche">Campeche</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit">Adicionar Corretor</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="list-container">
+                    <h3>Corretores Cadastrados</h3>
+                    <ul id="agent-list"></ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" title="Fechar">&times;</span>
+            <h3 id="modal-title">Editar Plantão</h3>
+            <form id="edit-scale-form">
+                <input type="hidden" id="selected-day">
+                
+                <div class="shift-editor">
+                    <h4>☀️ Turno da Manhã</h4>
+                    <div class="scale-editor-grid">
+                        <div class="editor-column">
+                            <h5>Disponíveis</h5>
+                            <div class="filter-wrapper">
+                                <input type="text" class="agent-list-filter" placeholder="Buscar corretor...">
+                            </div>
+                            <ul id="disponiveis-manha" class="sortable-list"></ul>
+                        </div>
+                        <div class="editor-column">
+                            <h5>Escalados (Arraste para ordenar)</h5>
+                            <ul id="escalados-manha" class="sortable-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="shift-editor">
+                    <h4>☀️ Turno da Tarde</h4>
+                    <div class="scale-editor-grid">
+                        <div class="editor-column">
+                            <h5>Disponíveis</h5>
+                            <div class="filter-wrapper">
+                                <input type="text" class="agent-list-filter" placeholder="Buscar corretor...">
+                            </div>
+                            <ul id="disponiveis-tarde" class="sortable-list"></ul>
+                        </div>
+                        <div class="editor-column">
+                            <h5>Escalados (Arraste para ordenar)</h5>
+                            <ul id="escalados-tarde" class="sortable-list"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="shift-editor">
+                    <h4>🌙 Turno da Noite</h4>
+                    <div class="scale-editor-grid">
+                        <div class="editor-column">
+                            <h5>Disponíveis</h5>
+                            <div class="filter-wrapper">
+                                <input type="text" class="agent-list-filter" placeholder="Buscar corretor...">
+                            </div>
+                            <ul id="disponiveis-noite" class="sortable-list"></ul>
+                        </div>
+                        <div class="editor-column">
+                            <h5>Escalados (Arraste para ordenar)</h5>
+                            <ul id="escalados-noite" class="sortable-list"></ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit">Salvar Plantão</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+</body>
+</html>
