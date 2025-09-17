@@ -39,7 +39,6 @@ function initializeApp() {
     monthFilter.value = `${year}-${month}`;
 
     monthFilter.addEventListener('change', () => {
-        // Ao mudar o mês, limpa o filtro de data
         dateFilter.value = '';
         renderDashboard();
     });
@@ -81,25 +80,53 @@ function initializeApp() {
                     stats[corretorId].diasDePlantao++;
                     const turnos = dailyData[corretorId];
                     let leadsDoDia = 0;
+
                     for (const turno in turnos) {
-                        if (typeof turnos[turno] === 'number') {
-                            leadsDoDia += turnos[turno];
+                        const turnoData = turnos[turno];
+                        let leadsNoTurno = 0;
+                        
+                        // Novo formato: turnoData é um array de objetos de lead
+                        if (Array.isArray(turnoData)) {
+                            leadsNoTurno = turnoData.length;
+                            if (leadsNoTurno > 0) {
+                                if (!stats[corretorId].dailyBreakdown[leadDate]) {
+                                    stats[corretorId].dailyBreakdown[leadDate] = [];
+                                }
+                                turnoData.forEach(lead => {
+                                    stats[corretorId].dailyBreakdown[leadDate].push({
+                                        turno: turno,
+                                        timestamp: lead.timestamp 
+                                    });
+                                });
+                            }
+                        } else if (typeof turnoData === 'number') { // Formato antigo
+                            leadsNoTurno = turnoData;
+                             if (leadsNoTurno > 0) {
+                                if (!stats[corretorId].dailyBreakdown[leadDate]) {
+                                    stats[corretorId].dailyBreakdown[leadDate] = [];
+                                }
+                                for (let i=0; i < leadsNoTurno; i++) {
+                                    stats[corretorId].dailyBreakdown[leadDate].push({
+                                        turno: turno,
+                                        timestamp: null
+                                    });
+                                }
+                            }
                         }
+                        leadsDoDia += leadsNoTurno;
                     }
                     stats[corretorId].leadsRecebidos += leadsDoDia;
-                    if (leadsDoDia > 0) {
-                        stats[corretorId].leadDetails.push({ date: leadDate, count: leadsDoDia });
-                    }
                 }
             }
         };
 
-        if (snapshot.docs) { // Se for um QuerySnapshot (mês inteiro)
+        if (snapshot.docs) { 
             snapshot.forEach(processDoc);
-        } else { // Se for um DocumentSnapshot (dia único)
+        } else { 
             processDoc(snapshot);
         }
     }
+
 
     async function renderDashboard() {
         dashboardContainer.innerHTML = 'A carregar...';
@@ -121,16 +148,14 @@ function initializeApp() {
                     nome: corretor.nome,
                     diasDePlantao: 0,
                     leadsRecebidos: 0,
-                    leadDetails: []
+                    dailyBreakdown: {}
                 };
             });
             
             let snapshot;
             if (selectedDate) {
-                // Filtro por dia específico
                 snapshot = await db.collection('contagem_leads_diaria').doc(selectedDate).get();
             } else {
-                // Filtro pelo mês inteiro
                 const startDate = `${year}-${String(month).padStart(2, '0')}-01`;
                 const nextMonthDate = new Date(year, month, 1);
                 const endDate = `${nextMonthDate.getFullYear()}-${String(nextMonthDate.getMonth() + 1).padStart(2, '0')}-01`;
@@ -202,15 +227,34 @@ function initializeApp() {
 
         modalTitle.textContent = `Leads de ${corretorStats.nome}`;
 
-        if (corretorStats.leadDetails.length === 0) {
+        const dailyBreakdown = corretorStats.dailyBreakdown;
+        const dates = Object.keys(dailyBreakdown).sort();
+
+        if (dates.length === 0) {
             leadListContainer.innerHTML = '<p>Nenhum lead recebido neste período.</p>';
         } else {
             let listHtml = '<ul>';
-            corretorStats.leadDetails.sort((a,b) => a.date.localeCompare(b.date)).forEach(detail => {
-                const [ano, mes, dia] = detail.date.split('-');
+            dates.forEach(date => {
+                const leadsDoDia = dailyBreakdown[date];
+                const [ano, mes, dia] = date.split('-');
                 const dataFormatada = `${dia}/${mes}/${ano}`;
-                const plural = detail.count > 1 ? 's' : '';
-                listHtml += `<li><strong>${dataFormatada}:</strong> ${detail.count} lead${plural}</li>`;
+                const plural = leadsDoDia.length > 1 ? 's' : '';
+
+                listHtml += `<li><strong>${dataFormatada}:</strong> ${leadsDoDia.length} lead${plural} recebido${plural}`;
+                
+                listHtml += '<ul>'; // Lista aninhada para os detalhes
+                leadsDoDia.forEach(lead => {
+                    const turnoNome = lead.turno.charAt(0).toUpperCase() + lead.turno.slice(1);
+                    let timeInfo = '';
+                    if (lead.timestamp && lead.timestamp.toDate) {
+                        const time = lead.timestamp.toDate();
+                        const hours = String(time.getHours()).padStart(2, '0');
+                        const minutes = String(time.getMinutes()).padStart(2, '0');
+                        timeInfo = ` às ${hours}:${minutes}`;
+                    }
+                    listHtml += `<li>Turno ${turnoNome}${timeInfo}</li>`;
+                });
+                listHtml += '</ul></li>';
             });
             listHtml += '</ul>';
             leadListContainer.innerHTML = listHtml;
@@ -218,6 +262,7 @@ function initializeApp() {
 
         leadDetailsModal.style.display = 'block';
     }
+
 
     renderDashboard();
 }
