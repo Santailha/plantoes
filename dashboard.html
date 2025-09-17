@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Leads - Santa Ilha Imóveis</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link rel="shortcut icon" href="faviconS.png" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="img/Logo_S_Amarelo_EscritaBranca (2).png" alt="logo-santa-ilha" class="logo">
+            <h1>Dashboard de Leads</h1>
+        </div>
+        <a href="plantao.html" id="back-button" title="Voltar para Distribuição">&#x21A9;</a>
+    </header>
+
+    <main>
+        <div id="filter-container">
+            <label for="month-filter">Mês:</label>
+            <input type="month" id="month-filter">
+
+            <label for="date-filter">Dia:</label>
+            <input type="date" id="date-filter">
+            <button id="clear-date-filter" title="Limpar filtro de data">Ver Mês Inteiro</button>
+            
+            <label for="corretor-filter">Corretor:</label>
+            <select id="corretor-filter">
+                <option value="todos">Todos os corretores</option>
+            </select>
+        </div>
+
+        <div id="dashboard-container">
+            </div>
+    </main>
+
+    <div id="lead-details-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" title="Fechar">&times;</span>
+            <h3 id="modal-title-leads">Leads Recebidos</h3>
+            <div id="lead-list-container"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

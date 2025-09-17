@@ -1,0 +1,62 @@
+#horarios-container {
+    max-width: 800px;
+    margin: auto;
+    background-color: var(--branco);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.horarios-section {
+    margin-bottom: 2.5rem;
+}
+
+.horarios-section-title {
+    color: var(--azul-santailha);
+    border-bottom: 2px solid var(--amarelo-santailha);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.plantao-card {
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--borda-suave);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.plantao-card h3 {
+    color: var(--azul-santailha);
+    margin-top: 0;
+    margin-bottom: 1rem;
+}
+
+.turno-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.horario-display, .horario-edit {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.horario-edit label, .horario-display label {
+    font-weight: 600;
+    width: 60px; /* Alinha os campos de input */
+}
+
+.horario-edit input[type="time"] {
+    font-size: 1rem;
+    padding: 8px;
+    border: 1px solid var(--borda-suave);
+    border-radius: 6px;
+}
+
+#admin-actions {
+    max-width: 800px;
+    margin: 1.5rem auto 0 auto;
+    padding: 0 2rem;
+}

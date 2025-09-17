@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horários dos Plantões - Santa Ilha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="horarios.css">
+    <link rel="shortcut icon" href="faviconS.png" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="img/Logo_S_Amarelo_EscritaBranca (2).png" alt="logo-santa-ilha" class="logo">
+            <h1>Horários dos Plantões</h1>
+        </div>
+        <a href="plantao.html" id="back-button" title="Voltar para Plantões">&#x21A9;</a>
+    </header>
+
+    <main>
+        <div id="horarios-container">
+            <p>A carregar horários...</p>
+        </div>
+
+        <div id="admin-actions" class="form-actions" style="display: none;">
+            <button id="save-horarios-btn">Salvar Alterações</button>
+        </div>
+        <p id="success-message" style="text-align: center; color: green; font-weight: bold;"></p>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="horarios.js"></script>
+</body>
+</html>

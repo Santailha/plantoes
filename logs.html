@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Alterações - Santa Ilha</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="logs.css">
+    <link rel="shortcut icon" href="faviconS.png" type="image/x-icon">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <img src="img/Logo_S_Amarelo_EscritaBranca (2).png" alt="logo-santa-ilha" class="logo">
+            <h1>Histórico de Alterações</h1>
+        </div>
+        <a href="plantao.html" id="back-button" title="Voltar para Plantões">&#x21A9;</a>
+    </header>
+
+    <main>
+        <div id="logs-container">
+            <p>Carregando histórico...</p>
+        </div>
+    </main>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    
+    <script src="firebase-config.js"></script>
+    <script src="logs.js"></script>
+</body>
+</html>

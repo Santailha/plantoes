@@ -1,0 +1,49 @@
+#logs-container {
+    max-width: 900px;
+    margin: auto;
+    background-color: var(--branco);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+#logs-container ul {
+    list-style: none;
+    padding: 0;
+}
+
+#logs-container li {
+    border-bottom: 1px solid var(--borda-suave);
+    padding: 1rem 0;
+}
+
+#logs-container li:last-child {
+    border-bottom: none;
+}
+
+.log-date, .log-user, .log-action {
+    display: inline-block;
+    margin-right: 15px;
+    font-weight: 500;
+}
+
+.log-date {
+    color: #777;
+    font-size: 0.9em;
+}
+
+.log-user {
+    color: var(--azul-santailha);
+}
+
+.log-action {
+    color: var(--amarelo-santailha);
+    font-weight: bold;
+}
+
+.log-details {
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+    font-size: 0.95em;
+    color: #333;
+}
