@@ -242,18 +242,31 @@ function initializeApp() {
 
                 listHtml += `<li><strong>${dataFormatada}:</strong> ${leadsDoDia.length} lead${plural} recebido${plural}`;
                 
-                listHtml += '<ul>'; // Lista aninhada para os detalhes
+                // Objeto para contar os leads por turno
+                const turnosCount = {
+                    manha: 0,
+                    tarde: 0,
+                    noite: 0
+                };
+
+                // Conta os leads em cada turno
                 leadsDoDia.forEach(lead => {
-                    const turnoNome = lead.turno.charAt(0).toUpperCase() + lead.turno.slice(1);
-                    let timeInfo = '';
-                    if (lead.timestamp && lead.timestamp.toDate) {
-                        const time = lead.timestamp.toDate();
-                        const hours = String(time.getHours()).padStart(2, '0');
-                        const minutes = String(time.getMinutes()).padStart(2, '0');
-                        timeInfo = ` às ${hours}:${minutes}`;
+                    if (lead.turno in turnosCount) {
+                        turnosCount[lead.turno]++;
                     }
-                    listHtml += `<li>Turno ${turnoNome}${timeInfo}</li>`;
                 });
+
+                listHtml += '<ul>'; // Sub-lista para os detalhes dos turnos
+                
+                // Itera sobre o objeto de contagem e cria a lista
+                for (const turno in turnosCount) {
+                    if (turnosCount[turno] > 0) {
+                        const turnoNome = turno.charAt(0).toUpperCase() + turno.slice(1);
+                        const pluralTurno = turnosCount[turno] > 1 ? 's' : '';
+                        listHtml += `<li>Turno ${turnoNome}: ${turnosCount[turno]} lead${pluralTurno}</li>`;
+                    }
+                }
+                
                 listHtml += '</ul></li>';
             });
             listHtml += '</ul>';
