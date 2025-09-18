@@ -149,7 +149,7 @@ function initializeApp(user, userRole) {
 
     async function loadPlantoes() {
         return new Promise((resolve) => {
-            db.collection('plantoes').orderBy('nome').onSnapshot(snapshot => {
+            db.collection('plantoes').orderBy('ordem').orderBy('nome').onSnapshot(snapshot => {
                 plantoesCache = [];
                 plantaoSelect.innerHTML = '';
                 if (snapshot.empty) {
@@ -580,19 +580,22 @@ function initializeApp(user, userRole) {
         createPlantaoForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('new-plantao-name').value.trim();
+            const ordemInput = document.getElementById('new-plantao-ordem').value;
+            const ordem = ordemInput ? parseInt(ordemInput, 10) : 99; // Default order if empty
             const integraCheckbox = document.getElementById('integra-plantao-checkbox');
             if (nome) {
                 try {
                     await db.collection('plantoes').add({
                         nome,
+                        ordem,
                         integraComDistribuicao: integraCheckbox.checked,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
-                    addLog('Criação de Plantão', `Novo plantão "${nome}" criado.`);
+                    addLog('Criação de Plantão', `Novo plantão "${nome}" criado com ordem ${ordem}.`);
 
-                    document.getElementById('new-plantao-name').value = '';
-                    integraCheckbox.checked = false;
+                    createPlantaoForm.reset();
+
                 } catch (error) {
                     console.error("Erro ao criar plantão:", error);
                     alert("Não foi possível criar o plantão.");
