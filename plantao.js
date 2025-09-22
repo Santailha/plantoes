@@ -425,18 +425,16 @@ function initializeApp(user, userRole) {
 
         if (index === -1) return;
 
-        // Reordena o array local
         if (direction === 'up' && index > 0) {
             [plantoesCache[index], plantoesCache[index - 1]] = [plantoesCache[index - 1], plantoesCache[index]];
         } else if (direction === 'down' && index < plantoesCache.length - 1) {
             [plantoesCache[index], plantoesCache[index + 1]] = [plantoesCache[index + 1], plantoesCache[index]];
         } else {
-            return; // Movimento inválido
+            return;
         }
         
-        // **NOVO: Salva a nova ordem no Firestore**
         const batch = db.batch();
-        const plantoesNomes = []; // Para o log
+        const plantoesNomes = [];
         plantoesCache.forEach((plantao, newIndex) => {
             const plantaoRef = db.collection('plantoes').doc(plantao.id);
             batch.update(plantaoRef, { ordem: newIndex });
@@ -445,13 +443,10 @@ function initializeApp(user, userRole) {
 
         try {
             await batch.commit();
-            // O onSnapshot irá recarregar a lista automaticamente.
-            // Apenas registramos o log da ação.
             addLog('Reordenação de Plantões', `Nova ordem: ${plantoesNomes.join(', ')}`);
         } catch (error) {
             console.error("Erro ao salvar a nova ordem:", error);
             alert("Não foi possível salvar a nova ordem. Tente novamente.");
-            // Se der erro, recarrega a lista para reverter a mudança visual
             loadPlantoes();
         }
     }
@@ -649,19 +644,20 @@ function initializeApp(user, userRole) {
         createPlantaoForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('new-plantao-name').value.trim();
-            const ordemInput = document.getElementById('new-plantao-ordem').value;
-            const ordem = ordemInput ? parseInt(ordemInput, 10) : 99;
             const integraCheckbox = document.getElementById('integra-plantao-checkbox');
             if (nome) {
                 try {
+                    // O novo plantão recebe a próxima ordem disponível
+                    const ordem = plantoesCache.length;
+                    
                     await db.collection('plantoes').add({
                         nome,
-                        ordem,
+                        ordem, // A nova ordem é salva no banco
                         integraComDistribuicao: integraCheckbox.checked,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
                     
-                    addLog('Criação de Plantão', `Novo plantão "${nome}" criado com ordem ${ordem}.`);
+                    addLog('Criação de Plantão', `Novo plantão "${nome}" criado.`);
 
                     createPlantaoForm.reset();
 
