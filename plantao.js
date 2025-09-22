@@ -573,13 +573,22 @@ function initializeApp(user, userRole) {
             const novos = proposedChanges[turno] || [];
             const adicionados = novos.filter(id => !antigos.includes(id));
             const removidos = antigos.filter(id => !novos.includes(id));
-            
-            if (adicionados.length > 0 || removidos.length > 0) {
+            const ordemMudou = antigos.length === novos.length && antigos.some((id, index) => id !== novos[index]);
+
+            if (adicionados.length > 0 || removidos.length > 0 || ordemMudou) {
                 logDetails += `Turno ${capitalize(turno)}: `;
-                if (adicionados.length > 0) logDetails += `Adicionado(s): ${adicionados.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
-                if (removidos.length > 0) logDetails += `Removido(s): ${removidos.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
+                if (adicionados.length > 0) {
+                    logDetails += `Adicionado(s): ${adicionados.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
+                }
+                if (removidos.length > 0) {
+                    logDetails += `Removido(s): ${removidos.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
+                }
+                if (ordemMudou) {
+                    logDetails += `Ordem alterada para: ${novos.map(id => corretoresCache[id]?.primeiroNome || '?').join(' > ')}. `;
+                }
             }
         });
+
         const tipoAntigo = escalaAntigaDoDia.tipoPlantao || 'nenhum';
         const tipoNovo = proposedChanges.tipoPlantao || 'nenhum';
         if (tipoAntigo !== tipoNovo) {
@@ -647,12 +656,11 @@ function initializeApp(user, userRole) {
             const integraCheckbox = document.getElementById('integra-plantao-checkbox');
             if (nome) {
                 try {
-                    // O novo plantão recebe a próxima ordem disponível
                     const ordem = plantoesCache.length;
                     
                     await db.collection('plantoes').add({
                         nome,
-                        ordem, // A nova ordem é salva no banco
+                        ordem,
                         integraComDistribuicao: integraCheckbox.checked,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp()
                     });
