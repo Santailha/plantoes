@@ -294,7 +294,6 @@ function initializeApp(user, userRole) {
             let allPlantonistasDoDia = [];
 
             plantoesCache.forEach((plantao, index) => {
-                // ** CORREÇÃO APLICADA AQUI **
                 const escalaPlantao = escalas[index] || { dias: {} };
                 const diaData = escalaPlantao.dias?.[day] || {};
                 const manhaIds = (diaData.manha || []);
@@ -375,7 +374,6 @@ function initializeApp(user, userRole) {
         };
 
         plantoesCache.forEach((plantao, index) => {
-            // ** CORREÇÃO APLICADA AQUI **
             const escalaPlantao = escalas[index] || { dias: {} };
             const diaData = escalaPlantao.dias?.[day] || {};
             const manhaNomes = mapNomesComDestaque(diaData.manha);
@@ -420,20 +418,42 @@ function initializeApp(user, userRole) {
         }
     }
     
-    function handleReorder(event) {
+    async function handleReorder(event) {
         const plantaoId = event.currentTarget.dataset.id;
         const direction = event.currentTarget.dataset.direction;
         const index = plantoesCache.findIndex(p => p.id === plantaoId);
 
         if (index === -1) return;
 
+        // Reordena o array local
         if (direction === 'up' && index > 0) {
             [plantoesCache[index], plantoesCache[index - 1]] = [plantoesCache[index - 1], plantoesCache[index]];
         } else if (direction === 'down' && index < plantoesCache.length - 1) {
             [plantoesCache[index], plantoesCache[index + 1]] = [plantoesCache[index + 1], plantoesCache[index]];
+        } else {
+            return; // Movimento inválido
         }
         
-        renderDailyView();
+        // **NOVO: Salva a nova ordem no Firestore**
+        const batch = db.batch();
+        const plantoesNomes = []; // Para o log
+        plantoesCache.forEach((plantao, newIndex) => {
+            const plantaoRef = db.collection('plantoes').doc(plantao.id);
+            batch.update(plantaoRef, { ordem: newIndex });
+            plantoesNomes.push(plantao.nome);
+        });
+
+        try {
+            await batch.commit();
+            // O onSnapshot irá recarregar a lista automaticamente.
+            // Apenas registramos o log da ação.
+            addLog('Reordenação de Plantões', `Nova ordem: ${plantoesNomes.join(', ')}`);
+        } catch (error) {
+            console.error("Erro ao salvar a nova ordem:", error);
+            alert("Não foi possível salvar a nova ordem. Tente novamente.");
+            // Se der erro, recarrega a lista para reverter a mudança visual
+            loadPlantoes();
+        }
     }
 
     async function getEscalaDoMes(plantaoId, year, month) {
