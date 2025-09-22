@@ -149,24 +149,48 @@ function initializeApp(user, userRole) {
 
     async function loadPlantoes() {
         return new Promise((resolve) => {
-            db.collection('plantoes').orderBy('ordem').orderBy('nome').onSnapshot(snapshot => {
-                plantoesCache = [];
-                plantaoSelect.innerHTML = '';
+            // 1. Removemos o .orderBy('ordem') para garantir que todos os plantões sejam carregados.
+            db.collection('plantoes').orderBy('nome').onSnapshot(snapshot => {
+                let plantoesTemporarios = [];
                 if (snapshot.empty) {
+                    plantoesCache = [];
                     plantaoSelect.innerHTML = '<option value="">Nenhum plantão criado</option>';
                     activePlantaoId = null;
                     render();
                     resolve();
                     return;
                 }
+
                 snapshot.forEach(doc => {
-                    plantoesCache.push({ id: doc.id, ...doc.data() });
-                    plantaoSelect.innerHTML += `<option value="${doc.id}">${doc.data().nome}</option>`;
+                    plantoesTemporarios.push({ id: doc.id, ...doc.data() });
                 });
+
+                // 2. Ordenamos os plantões aqui no código, tratando os que não têm 'ordem'.
+                plantoesTemporarios.sort((a, b) => {
+                    const ordemA = a.ordem !== undefined ? a.ordem : 999; // Damos um valor alto para os que não têm ordem
+                    const ordemB = b.ordem !== undefined ? b.ordem : 999;
+                    
+                    if (ordemA !== ordemB) {
+                        return ordemA - ordemB; // Ordena numericamente
+                    }
+                    return a.nome.localeCompare(b.nome); // Se a ordem for igual, mantém a ordem por nome
+                });
+
+                plantoesCache = plantoesTemporarios;
+                plantaoSelect.innerHTML = '';
+
+                plantoesCache.forEach(plantao => {
+                    plantaoSelect.innerHTML += `<option value="${plantao.id}">${plantao.nome}</option>`;
+                });
+
                 if (!activePlantaoId || !plantoesCache.find(p => p.id === activePlantaoId)) {
                     activePlantaoId = plantoesCache[0]?.id || null;
                 }
-                plantaoSelect.value = activePlantaoId;
+                
+                if (activePlantaoId) {
+                    plantaoSelect.value = activePlantaoId;
+                }
+
                 render();
                 resolve();
             });
