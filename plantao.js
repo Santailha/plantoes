@@ -149,8 +149,8 @@ function initializeApp(user, userRole) {
 
     async function loadPlantoes() {
         return new Promise((resolve) => {
-            // 1. Removemos o .orderBy('ordem') para garantir que todos os plantões sejam carregados.
-            db.collection('plantoes').orderBy('nome').onSnapshot(snapshot => {
+            // A consulta ao Firestore é feita sem ordenação customizada para buscar TODOS os plantões.
+            db.collection('plantoes').onSnapshot(snapshot => {
                 let plantoesTemporarios = [];
                 if (snapshot.empty) {
                     plantoesCache = [];
@@ -165,15 +165,21 @@ function initializeApp(user, userRole) {
                     plantoesTemporarios.push({ id: doc.id, ...doc.data() });
                 });
 
-                // 2. Ordenamos os plantões aqui no código, tratando os que não têm 'ordem'.
+                // ** A MÁGICA ACONTECE AQUI **
+                // Ordenamos a lista de plantões no código.
                 plantoesTemporarios.sort((a, b) => {
-                    const ordemA = a.ordem !== undefined ? a.ordem : 999; // Damos um valor alto para os que não têm ordem
-                    const ordemB = b.ordem !== undefined ? b.ordem : 999;
-                    
+                    // Se 'a' tem ordem e 'b' não, 'a' vem primeiro.
+                    // Se 'b' tem ordem e 'a' não, 'b' vem primeiro.
+                    const ordemA = a.hasOwnProperty('ordem') ? Number(a.ordem) : Infinity;
+                    const ordemB = b.hasOwnProperty('ordem') ? Number(b.ordem) : Infinity;
+
+                    // 1. Critério principal: Ordena pelo número do campo 'ordem'.
                     if (ordemA !== ordemB) {
-                        return ordemA - ordemB; // Ordena numericamente
+                        return ordemA - ordemB;
                     }
-                    return a.nome.localeCompare(b.nome); // Se a ordem for igual, mantém a ordem por nome
+
+                    // 2. Critério secundário: Se a ordem for igual (ou ambos não tiverem), ordena por nome.
+                    return a.nome.localeCompare(b.nome);
                 });
 
                 plantoesCache = plantoesTemporarios;
@@ -360,6 +366,9 @@ function initializeApp(user, userRole) {
         const year = currentDate.getFullYear();
         const month = currentDate.getMonth();
         const day = currentDate.getDate();
+        
+        // A lista `plantoesCache` já está ordenada pela função loadPlantoes.
+        // O restante da função irá renderizar os cartões na ordem correta.
         const promises = plantoesCache.map(plantao => getEscalaDoMes(plantao.id, year, month));
         const escalas = await Promise.all(promises);
         let dailyHtml = '';
