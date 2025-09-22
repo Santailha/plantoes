@@ -202,15 +202,151 @@ function initializeApp(user, userRole) {
     }
 
     async function renderMonthlyCalendar() {
-       //... (código sem alterações)
+        if (!activePlantaoId) {
+            calendarGrid.innerHTML = '<div style="grid-column: span 7; text-align: center; padding: 2rem;">Selecione um plantão para começar.</div>';
+            return;
+        }
+        calendarGrid.innerHTML = 'Carregando...';
+        currentDate.setDate(1);
+        const month = currentDate.getMonth(), year = currentDate.getFullYear();
+        const firstDayIndex = currentDate.getDay();
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        const escalaDoMes = await getEscalaDoMes(activePlantaoId, year, month);
+        const diasEscalados = escalaDoMes.dias || {};
+        let daysHtml = '';
+        for (let i = 0; i < firstDayIndex; i++) { daysHtml += `<div class="calendar-day not-current-month"></div>`; }
+        
+        const mapNomesComDestaque = (ids) => {
+            return (ids || []).map(id => {
+                const nome = corretoresCache[id]?.primeiroNome || '?';
+                if (corretorFiltradoId !== 'todos' && corretorFiltradoId === id) {
+                    return `<span class="highlight-agent">${nome}</span>`;
+                }
+                return nome;
+            }).join(' > ');
+        };
+
+        for (let i = 1; i <= lastDay; i++) {
+            const diaData = diasEscalados[i] || {};
+            const manhaNomes = mapNomesComDestaque(diaData.manha);
+            const tardeNomes = mapNomesComDestaque(diaData.tarde);
+            const noiteNomes = mapNomesComDestaque(diaData.noite);
+            
+            let classesDoDia = 'calendar-day';
+            if (corretorFiltradoId !== 'todos') {
+                const plantonistas = [...(diaData.manha || []), ...(diaData.tarde || []), ...(diaData.noite || [])];
+                if (!plantonistas.includes(corretorFiltradoId)) {
+                    classesDoDia += ' day-filtered-out';
+                }
+            }
+
+            if (diaData.tipoPlantao === 'nosso') {
+                classesDoDia += ' plantao-nosso';
+            } else if (diaData.tipoPlantao === 'outra') {
+                classesDoDia += ' plantao-outra';
+            }
+
+            daysHtml += `<div class="${classesDoDia}" data-day="${i}">
+                <div class="day-number">${i}</div>
+                ${manhaNomes ? `<div class="shift-title">Manhã</div><ul class="agent-list-day"><li>${manhaNomes}</li></ul>` : ''}
+                ${tardeNomes ? `<div class="shift-title">Tarde</div><ul class="agent-list-day"><li>${tardeNomes}</li></ul>` : ''}
+                ${noiteNomes ? `<div class="shift-title">Noite</div><ul class="agent-list-day"><li>${noiteNomes}</li></ul>` : ''}
+            </div>`;
+        }
+        calendarGrid.innerHTML = daysHtml;
+        if (userRole === 'admin') {
+            calendarGrid.querySelectorAll('.calendar-day[data-day]').forEach(day =>
+                day.addEventListener('click', () => openEditModal(day.dataset.day))
+            );
+        }
     }
 
     async function renderWeeklyView() {
-        //... (código sem alterações)
+        weeklyGrid.innerHTML = 'Carregando...';
+        const weekDates = getWeekDates(currentDate);
+        
+        const firstDay = weekDates[0];
+        const lastDay = weekDates[6];
+        weeklyDateRangeEl.textContent = `Semana de ${firstDay.toLocaleDateString()} a ${lastDay.toLocaleDateString()}`;
+
+        let weeklyHtml = '';
+        
+        const mapNomesComDestaque = (ids) => {
+            return (ids || []).map(id => {
+                const nome = corretoresCache[id]?.nome || '?';
+                if (corretorFiltradoId !== 'todos' && corretorFiltradoId === id) {
+                    return `<span class="highlight-agent">${nome}</span>`;
+                }
+                return nome;
+            }).join(', ');
+        };
+
+        for (const date of weekDates) {
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const day = date.getDate();
+            const dayName = date.toLocaleDateString('pt-BR', { weekday: 'long' });
+
+            const promises = plantoesCache.map(plantao => getEscalaDoMes(plantao.id, year, month));
+            const escalas = await Promise.all(promises);
+            
+            let plantoesHtml = '';
+            let allPlantonistasDoDia = [];
+
+            plantoesCache.forEach((plantao, index) => {
+                // ** CORREÇÃO APLICADA AQUI **
+                const escalaPlantao = escalas[index] || { dias: {} };
+                const diaData = escalaPlantao.dias?.[day] || {};
+                const manhaIds = (diaData.manha || []);
+                const tardeIds = (diaData.tarde || []);
+                const noiteIds = (diaData.noite || []);
+
+                allPlantonistasDoDia.push(...manhaIds, ...tardeIds, ...noiteIds);
+
+                const manhaNomes = mapNomesComDestaque(manhaIds);
+                const tardeNomes = mapNomesComDestaque(tardeIds);
+                const noiteNomes = mapNomesComDestaque(noiteIds);
+
+                if (manhaNomes || tardeNomes || noiteNomes) {
+                    plantoesHtml += `
+                        <div class="weekly-plantao">
+                            <div class="weekly-plantao-nome">${plantao.nome}</div>
+                            ${manhaNomes ? `<div class="weekly-shift"><strong>Manhã:</strong> <span class="weekly-shift-agents">${manhaNomes}</span></div>` : ''}
+                            ${tardeNomes ? `<div class="weekly-shift"><strong>Tarde:</strong> <span class="weekly-shift-agents">${tardeNomes}</span></div>` : ''}
+                            ${noiteNomes ? `<div class="weekly-shift"><strong>Noite:</strong> <span class="weekly-shift-agents">${noiteNomes}</span></div>` : ''}
+                        </div>
+                    `;
+                }
+            });
+
+            let cardClasses = 'weekly-day-card';
+             if (corretorFiltradoId !== 'todos' && !allPlantonistasDoDia.includes(corretorFiltradoId)) {
+                cardClasses += ' day-filtered-out';
+            }
+
+            weeklyHtml += `
+                <div class="${cardClasses}">
+                    <div class="card-header">
+                        <span class="day-name">${dayName}</span>
+                        <span class="date">${date.toLocaleDateString()}</span>
+                    </div>
+                    <div class="card-content">
+                        ${plantoesHtml || '<p style="color: #888; font-style: italic;">Nenhum plantão neste dia.</p>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        weeklyGrid.innerHTML = weeklyHtml;
     }
 
     function getWeekDates(date) {
-        //... (código sem alterações)
+        const week = [];
+        const firstDayOfWeek = date.getDate() - date.getDay();
+        for (let i = 0; i < 7; i++) {
+            week.push(new Date(date.getFullYear(), date.getMonth(), firstDayOfWeek + i));
+        }
+        return week;
     }
 
     async function renderDailyView() {
@@ -239,7 +375,8 @@ function initializeApp(user, userRole) {
         };
 
         plantoesCache.forEach((plantao, index) => {
-            const escalaPlantao = escalas[index];
+            // ** CORREÇÃO APLICADA AQUI **
+            const escalaPlantao = escalas[index] || { dias: {} };
             const diaData = escalaPlantao.dias?.[day] || {};
             const manhaNomes = mapNomesComDestaque(diaData.manha);
             const tardeNomes = mapNomesComDestaque(diaData.tarde);
@@ -253,7 +390,6 @@ function initializeApp(user, userRole) {
                 }
             }
             
-            // Adiciona as setas de ordenação
             const isFirst = index === 0;
             const isLast = index === plantoesCache.length - 1;
             const orderControls = userRole === 'admin' ? `
@@ -277,7 +413,6 @@ function initializeApp(user, userRole) {
         });
         dailyView.innerHTML = dailyHtml;
 
-        // Adiciona os event listeners para os botões de reordenar
         if (userRole === 'admin') {
             document.querySelectorAll('.reorder-btn').forEach(button => {
                 button.addEventListener('click', handleReorder);
@@ -293,42 +428,209 @@ function initializeApp(user, userRole) {
         if (index === -1) return;
 
         if (direction === 'up' && index > 0) {
-            // Troca com o elemento anterior
             [plantoesCache[index], plantoesCache[index - 1]] = [plantoesCache[index - 1], plantoesCache[index]];
         } else if (direction === 'down' && index < plantoesCache.length - 1) {
-            // Troca com o elemento seguinte
             [plantoesCache[index], plantoesCache[index + 1]] = [plantoesCache[index + 1], plantoesCache[index]];
         }
         
-        // Re-renderiza a view com a nova ordem
         renderDailyView();
     }
 
-
     async function getEscalaDoMes(plantaoId, year, month) {
-        //... (código sem alterações)
+        const docId = `${plantaoId}_${year}-${String(month + 1).padStart(2, '0')}`;
+        if (escalaCache[docId]) return escalaCache[docId];
+        try {
+            const doc = await db.collection('escalasPlantoes').doc(docId).get();
+            const escala = doc.exists ? doc.data() : { dias: {} };
+            escalaCache[docId] = escala;
+            return escala;
+        } catch (error) {
+            console.error("Erro ao buscar escala:", error);
+            return { dias: {} };
+        }
     }
 
     async function openEditModal(day) {
-        //... (código sem alterações)
+        const plantaoAtual = plantoesCache.find(p => p.id === activePlantaoId);
+        if (!plantaoAtual) return;
+        const { month, year } = { month: currentDate.getMonth(), year: currentDate.getFullYear() };
+        modal.querySelector('#modal-title').innerText = `Editar ${plantaoAtual.nome}: ${day}/${month + 1}/${year}`;
+        modal.querySelector('#selected-day').value = day;
+
+        const escalaDoMes = await getEscalaDoMes(activePlantaoId, year, month);
+        const escalaDoDia = escalaDoMes.dias?.[day] || {};
+
+        const tipoPlantao = escalaDoDia.tipoPlantao || 'nenhum';
+        const radioToCheck = modal.querySelector(`input[name="tipoPlantao"][value="${tipoPlantao}"]`);
+        if (radioToCheck) {
+            radioToCheck.checked = true;
+        }
+
+        const otherPlantoes = plantoesCache.filter(p => p.id !== activePlantaoId);
+        const conflictingAgents = { manha: new Set(), tarde: new Set(), noite: new Set() };
+        for (const otherPlantao of otherPlantoes) {
+            const otherEscala = await getEscalaDoMes(otherPlantao.id, year, month);
+            const otherDiaData = otherEscala.dias?.[day];
+            if (otherDiaData) {
+                (otherDiaData.manha || []).forEach(agentId => conflictingAgents.manha.add(agentId));
+                (otherDiaData.tarde || []).forEach(agentId => conflictingAgents.tarde.add(agentId));
+                (otherDiaData.noite || []).forEach(agentId => conflictingAgents.noite.add(agentId));
+            }
+        }
+
+        const turnos = ['manha', 'tarde', 'noite'];
+        turnos.forEach(turno => {
+            const escaladosIds = new Set(escalaDoDia[turno] || []);
+            const listaDisponiveisEl = modal.querySelector(`#disponiveis-${turno}`);
+            const listaEscaladosEl = modal.querySelector(`#escalados-${turno}`);
+            listaDisponiveisEl.innerHTML = '';
+            listaEscaladosEl.innerHTML = '';
+            (escalaDoDia[turno] || []).forEach(id => {
+                if(corretoresCache[id]) listaEscaladosEl.innerHTML += `<li data-id="${id}">${corretoresCache[id].nome}</li>`;
+            });
+            Object.values(corretoresCache).forEach(corretor => {
+                if (!escaladosIds.has(corretor.id)) {
+                    const hasConflict = conflictingAgents[turno].has(corretor.id);
+                    const liClass = hasConflict ? 'class="unavailable"' : '';
+                    const liTitle = hasConflict ? 'title="Corretor já escalado em outro plantão neste período!"' : '';
+                    const warningSymbol = hasConflict ? '⚠️ ' : '';
+                    listaDisponiveisEl.innerHTML += `<li data-id="${corretor.id}" ${liClass} ${liTitle}>${warningSymbol}${corretor.nome}</li>`;
+                }
+            });
+            if (listaDisponiveisEl.sortable) listaDisponiveisEl.sortable.destroy();
+            if (listaEscaladosEl.sortable) listaEscaladosEl.sortable.destroy();
+            [listaDisponiveisEl, listaEscaladosEl].forEach(list => {
+                Sortable.create(list, { group: `escala-${turno}`, animation: 150, ghostClass: 'dragging-item' });
+            });
+        });
+
+        modal.querySelectorAll('.agent-list-filter').forEach(input => {
+            input.value = '';
+            input.addEventListener('keyup', (e) => {
+                const searchTerm = e.target.value.toLowerCase();
+                const list = e.target.closest('.editor-column').querySelector('.sortable-list');
+                const items = list.querySelectorAll('li');
+                items.forEach(item => {
+                    const itemName = item.textContent.toLowerCase();
+                    if (itemName.includes(searchTerm)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        });
+        
+        modal.style.display = 'block';
     }
     
     async function handleSaveScale(e) {
-        //... (código sem alterações)
+        e.preventDefault();
+        const day = modal.querySelector('#selected-day').value;
+        const { month, year } = { month: currentDate.getMonth(), year: currentDate.getFullYear() };
+        const turnos = ['manha', 'tarde', 'noite'];
+    
+        const escalaAntigaDoc = await getEscalaDoMes(activePlantaoId, year, month);
+        const escalaAntigaDoDia = escalaAntigaDoc.dias?.[day] || {};
+    
+        const updatePayload = {};
+        const proposedChanges = {};
+    
+        turnos.forEach(turno => {
+            const listaEscaladosEl = modal.querySelector(`#escalados-${turno}`);
+            const escalados = [...listaEscaladosEl.children].map(li => li.dataset.id);
+            updatePayload[`dias.${day}.${turno}`] = escalados;
+            proposedChanges[turno] = escalados;
+        });
+    
+        const tipoPlantaoSelecionado = modal.querySelector('input[name="tipoPlantao"]:checked').value;
+        if (tipoPlantaoSelecionado === 'nenhum') {
+            updatePayload[`dias.${day}.tipoPlantao`] = firebase.firestore.FieldValue.delete();
+        } else {
+            updatePayload[`dias.${day}.tipoPlantao`] = tipoPlantaoSelecionado;
+        }
+        proposedChanges.tipoPlantao = tipoPlantaoSelecionado;
+    
+        let logDetails = '';
+        const capitalize = s => s.charAt(0).toUpperCase() + s.slice(1);
+        turnos.forEach(turno => {
+            const antigos = escalaAntigaDoDia[turno] || [];
+            const novos = proposedChanges[turno] || [];
+            const adicionados = novos.filter(id => !antigos.includes(id));
+            const removidos = antigos.filter(id => !novos.includes(id));
+            
+            if (adicionados.length > 0 || removidos.length > 0) {
+                logDetails += `Turno ${capitalize(turno)}: `;
+                if (adicionados.length > 0) logDetails += `Adicionado(s): ${adicionados.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
+                if (removidos.length > 0) logDetails += `Removido(s): ${removidos.map(id => corretoresCache[id]?.nome || '?').join(', ')}. `;
+            }
+        });
+        const tipoAntigo = escalaAntigaDoDia.tipoPlantao || 'nenhum';
+        const tipoNovo = proposedChanges.tipoPlantao || 'nenhum';
+        if (tipoAntigo !== tipoNovo) {
+            logDetails += `Tipo de plantão alterado de "${tipoAntigo}" para "${tipoNovo}".`;
+        }
+    
+        if (logDetails === '') {
+            modal.style.display = 'none';
+            return;
+        }
+    
+        const docId = `${activePlantaoId}_${year}-${String(month + 1).padStart(2, '0')}`;
+        const docRef = db.collection('escalasPlantoes').doc(docId);
+    
+        try {
+            const doc = await docRef.get();
+            if (doc.exists) {
+                await docRef.update(updatePayload);
+            } else {
+                const createPayload = {
+                    plantaoId: activePlantaoId,
+                    dias: {
+                        [day]: {
+                            manha: updatePayload[`dias.${day}.manha`],
+                            tarde: updatePayload[`dias.${day}.tarde`],
+                            noite: updatePayload[`dias.${day}.noite`],
+                        }
+                    }
+                };
+                if (tipoPlantaoSelecionado !== 'nenhum') {
+                    createPayload.dias[day].tipoPlantao = tipoPlantaoSelecionado;
+                }
+                await docRef.set(createPayload);
+            }
+    
+            const plantaoNome = plantoesCache.find(p => p.id === activePlantaoId)?.nome || `ID ${activePlantaoId}`;
+            addLog(`Alteração - ${plantaoNome} - Dia ${day}/${month + 1}`, logDetails);
+    
+            modal.style.display = 'none';
+            delete escalaCache[docId];
+            render();
+        } catch (error) {
+            console.error("Erro ao salvar o plantão: ", error);
+            alert("Não foi possível salvar a escala.");
+        }
     }
 
     function updateCurrentDateDisplay() {
-        //... (código sem alterações)
+        const monthName = currentDate.toLocaleString('pt-BR', { month: 'long' });
+        const year = currentDate.getFullYear();
+        if (currentMonthYearEl) {
+            currentMonthYearEl.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} de ${year}`;
+        }
+        if(datePicker) {
+            const dayStr = String(currentDate.getDate()).padStart(2, '0');
+            const monthStr = String(currentDate.getMonth() + 1).padStart(2, '0');
+            datePicker.value = `${year}-${monthStr}-${dayStr}`;
+        }
     }
 
-    //... (Restante do seu código sem alterações)
-    
     if (userRole === 'admin' && createPlantaoForm) {
         createPlantaoForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('new-plantao-name').value.trim();
             const ordemInput = document.getElementById('new-plantao-ordem').value;
-            const ordem = ordemInput ? parseInt(ordemInput, 10) : 99; // Default order if empty
+            const ordem = ordemInput ? parseInt(ordemInput, 10) : 99;
             const integraCheckbox = document.getElementById('integra-plantao-checkbox');
             if (nome) {
                 try {
