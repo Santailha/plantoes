@@ -1103,3 +1103,45 @@ body.role-recepcao #page-navigation {
         display: none;
     }
 }
+/* ... (todo o seu CSS existente) ... */
+
+/* --- NOVOS ESTILOS PARA ORDENAÇÃO MANUAL NA VIEW DIÁRIA --- */
+
+.daily-plantao-card h3 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.order-controls button {
+    background-color: transparent;
+    border: 1px solid var(--borda-suave);
+    color: var(--azul-santailha);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+
+.order-controls button:hover {
+    background-color: var(--fundo-geral);
+    border-color: var(--azul-santailha);
+    transform: scale(1.1);
+}
+
+.order-controls button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background-color: transparent;
+    border-color: var(--borda-suave);
+    transform: none;
+}
