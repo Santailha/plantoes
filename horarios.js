@@ -61,8 +61,12 @@ async function initializeApp(userRole) {
                 ${generateSectionHtml('padrao', horarios, userRole)}
             </div>
             <div class="horarios-section">
-                <h2 class="horarios-section-title">Horários Especiais (Sábados, Domingos e Feriados)</h2>
-                ${generateSectionHtml('especial', horarios, userRole)}
+                <h2 class="horarios-section-title">Horários de Sábado</h2>
+                ${generateSectionHtml('sabado', horarios, userRole)}
+            </div>
+            <div class="horarios-section">
+                <h2 class="horarios-section-title">Horários de Domingo e Feriados</h2>
+                ${generateSectionHtml('domingoFeriados', horarios, userRole)}
             </div>
         `;
         
@@ -112,7 +116,7 @@ async function initializeApp(userRole) {
 
     async function saveHorarios() {
         const novosHorarios = {};
-        const sections = ['padrao', 'especial'];
+        const sections = ['padrao', 'sabado', 'domingoFeriados'];
         const turnos = ['manha', 'tarde', 'noite'];
 
         plantoesCache.forEach(plantao => {
